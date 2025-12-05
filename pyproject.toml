@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "video-splitter"
+version = "1.0.0"
+description = "Split videos horizontally into two halves."
+authors = [{name = "Beltrán Offerrall"}]
+readme = "README.md"
+requires-python = ">=3.7"
+license = {text = "MIT"}
+
+[project.scripts]
+split-video = "video_splitter.cli:main"
