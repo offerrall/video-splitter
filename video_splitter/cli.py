@@ -2,8 +2,9 @@ import subprocess
 import sys
 import os
 import json
+from pathlib import Path
 
-def get_video_info(input_file: str):
+def get_video_info(input_file: str) -> tuple[int, int]:
     cmd = ['ffprobe', '-v', 'quiet', '-print_format', 'json', '-show_streams', input_file]
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     data = json.loads(result.stdout)
@@ -14,7 +15,7 @@ def get_video_info(input_file: str):
     
     raise ValueError("No video stream found")
 
-def split_video(input_file: str):
+def split_video(input_file: str, output_folder: str | None = None) -> None:
     if not os.path.exists(input_file):
         print(f"Error: File '{input_file}' not found")
         sys.exit(1)
@@ -25,9 +26,17 @@ def split_video(input_file: str):
     print(f"Original: {width}x{height}")
     print(f"Split: {half_width}x{height}")
     
-    base = os.path.splitext(input_file)[0]
-    left = f"{base}_left.mp4"
-    right = f"{base}_right.mp4"
+    base_name = Path(input_file).stem
+    
+    if output_folder:
+        output_path = Path(output_folder)
+        output_path.mkdir(parents=True, exist_ok=True)
+        left = str(output_path / f"{base_name}_left.mp4")
+        right = str(output_path / f"{base_name}_right.mp4")
+    else:
+        base = os.path.splitext(input_file)[0]
+        left = f"{base}_left.mp4"
+        right = f"{base}_right.mp4"
 
     print("\nProcessing left (with audio)...")
     subprocess.run([
@@ -51,11 +60,14 @@ def split_video(input_file: str):
     print("\nDone!")
 
 def main():
-    if len(sys.argv) != 2:
-        print("Usage: split-video <video_file>")
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
+        print("Usage: split-video <video_file> [output_folder]")
         sys.exit(1)
     
-    split_video(sys.argv[1])
+    input_file = sys.argv[1]
+    output_folder = sys.argv[2] if len(sys.argv) == 3 else None
+    
+    split_video(input_file, output_folder)
 
 if __name__ == "__main__":
     main()
